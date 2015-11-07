@@ -132,3 +132,12 @@ func main() {
   fmt.Println(rounded) // [3 5]
 }
 ```
+
+## TODO
+* [ ] ForEach
+* [ ] Add
+* [ ] Concat
+* [ ] Find
+* [ ] Reverse
+* [ ] Splice
+* [ ] ReduceXXX
