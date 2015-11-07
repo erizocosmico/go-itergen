@@ -33,36 +33,33 @@ package mypkg
 
 type Float64Iter []float64
 
-type Float64IterMapFunc func(float64) interface{}
+func NewFloat64Iter(items ...float64) Float64Iter {
+	return Float64Iter(items)
+}
 
 type Float64IterMapResult []interface{}
 
-func NewFloat64Iter(items ...float64) Float64Iter {
-  return Float64Iter(items)
+func (i Float64Iter) Map(fn func(float64) interface{}) Float64IterMapResult {
+	var result []interface{}
+	for _, item := range i {
+		result = append(result, fn(item))
+	}
+	return result
 }
 
-func (f Float64Iter) Map(fn Float64IterMapFunc) Float64IterMapResult {
-  var result []interface{}
-  for _, i := range f {
-    result = append(result, fn(i))
-  }
-  return result
+func (r Float64IterMapResult) ToInt() []int {
+	var result []int
+	for _, i := range r {
+		result = append(result, i.(int))
+	}
+	return result
 }
-
-func (f Float64IterMapResult) ToInt() []int {
-  var result []int
-  for _, i := range f {
-    result = append(result, i.(int))
-  }
-  return result
-}
-
-func (f Float64IterMapResult) ToString() []string {
-  var result []string
-  for _, i := range f {
-    result = append(result, i.(string))
-  }
-  return result
+func (r Float64IterMapResult) ToString() []string {
+	var result []string
+	for _, i := range r {
+		result = append(result, i.(string))
+	}
+	return result
 }
 ```
 
