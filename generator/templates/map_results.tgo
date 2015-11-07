@@ -1,0 +1,9 @@
+{{$name := .Name}}
+{{range $r := .Results}}func (r {{$name}}IterMapResult) To{{.Name}}() []{{.Type}} {
+  var result []{{.Type}}
+  for _, i := range r {
+    result = append(result, i.({{.Type}}))
+  }
+  return result
+}
+{{end}}
