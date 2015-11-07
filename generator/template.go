@@ -13,6 +13,7 @@ var (
 	importsTpl    = loadTemplate("imports")
 	mapTpl        = loadTemplate("map")
 	mapResultsTpl = loadTemplate("map_results")
+	filterTpl     = loadTemplate("filter")
 )
 
 func loadTemplateText(name string) string {

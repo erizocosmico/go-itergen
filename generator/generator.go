@@ -110,6 +110,9 @@ func (g *Generator) generateAll(w io.Writer) error {
 }
 
 func (g *Generator) generateFilter(w io.Writer) error {
+	if g.Filter {
+		return filterTpl.Execute(w, g.Type)
+	}
 	return nil
 }
 

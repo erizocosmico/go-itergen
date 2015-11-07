@@ -36,6 +36,19 @@ func (i Float64Iter) Map(fn func(float64) interface{}) Float64IterMapResult {
   }
   return result
 }
+
+var ErrFloat64ToFloat64 = errors.New("cannot convert Float64IterMapResult to []float64")
+
+func (r Float64IterMapResult) Iter() (Float64Iter, error) {
+  var result []float64
+  for _, i := range r {
+    if _, ok := i.(float64); !ok {
+      return nil, ErrFloat64ToFloat64
+    }
+    result = append(result, i.(float64))
+  }
+  return Float64Iter(result), nil
+}
 `
 
 var generatedMapResults = `
