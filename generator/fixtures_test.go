@@ -168,3 +168,23 @@ func (i Float64Iter) Splice(start, numDelete int) Float64Iter {
   return result
 }
 `
+
+var generatedReducers = `
+
+func (i Float64Iter) ReduceInt(fn func(current float64, acc int, index int) int, initial int) int {
+  var result = initial
+  for idx, item := range i {
+    initial = fn(item, result, idx)
+  }
+  return result
+}
+
+func (i Float64Iter) ReduceString(fn func(current float64, acc string, index int) string, initial string) string {
+  var result = initial
+  for idx, item := range i {
+    initial = fn(item, result, idx)
+  }
+  return result
+}
+
+`

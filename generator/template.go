@@ -21,6 +21,7 @@ var (
 	findTpl       = loadTemplate("find")
 	reverseTpl    = loadTemplate("reverse")
 	spliceTpl     = loadTemplate("splice")
+	reduceTpl     = loadTemplate("reduce")
 )
 
 func loadTemplateText(name string) string {

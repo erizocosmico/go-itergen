@@ -191,6 +191,24 @@ func (g *Generator) generateSplice(w io.Writer) error {
 	return nil
 }
 
+func (g *Generator) generateReduces(w io.Writer) error {
+	if len(g.Reduce) > 0 {
+		data := struct {
+			Name     string
+			Type     string
+			Reducers []TypeDef
+		}{
+			Name:     g.Type.Name,
+			Type:     g.Type.Type,
+			Reducers: g.ReduceTypes,
+		}
+
+		return reduceTpl.Execute(w, data)
+	}
+
+	return nil
+}
+
 func (g *Generator) generateCode() ([]byte, error) {
 	generators := []generatorFunc{
 		g.generatePackage,
@@ -206,6 +224,7 @@ func (g *Generator) generateCode() ([]byte, error) {
 		g.generateFind,
 		g.generateReverse,
 		g.generateSplice,
+		g.generateReduces,
 	}
 
 	buf := bytes.NewBuffer(nil)

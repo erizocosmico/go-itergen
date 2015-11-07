@@ -16,17 +16,16 @@ go-itergen generates the following functions for an array type:
 * **ForEach:** will execute a function for every item.
 * **Reverse:** will return the slice in reversed order.
 * **Splice:** will return a new slice with a number of items removed after the given start.
+* **Reduce:** applies a function against an accumulator and each value of the slice (from left to right) to reduce it to a single value of the given type.
 
-More will come after these four, but this is the basic functionality that is going to be provided.
-
-You can choose which operations you want for your type, that is, if you don't need `Map` it won't be generated.
+You can choose which operations you want for your type, that is, if you don't need `Map` or another function it won't be generated.
 
 ## Generate code
 
 You just have to add that to a file in the package you want the code to be generated in.
 
 ```go
-//go:generate go-itergen -t "float64" --pkg="mypkg" --map="string" --map="int" --filter --all --some --foreach --concat --find --reverse --splice
+//go:generate go-itergen -t "float64" --pkg="mypkg" --map="string" --map="int" --filter --all --some --foreach --concat --find --reverse --splice --reduce="string" --reduce="int"
 ```
 
 ## Example
@@ -171,6 +170,22 @@ func (i Float64Iter) Splice(start, numDelete int) Float64Iter {
 	return result
 }
 
+func (i Float64Iter) ReduceInt(fn func(current float64, acc int, index int) int, initial int) int {
+	var result = initial
+	for idx, item := range i {
+		initial = fn(item, result, idx)
+	}
+	return result
+}
+
+func (i Float64Iter) ReduceString(fn func(current float64, acc string, index int) string, initial string) string {
+	var result = initial
+	for idx, item := range i {
+		initial = fn(item, result, idx)
+	}
+	return result
+}
+
 ```
 
 And would be used like:
@@ -185,6 +200,3 @@ func main() {
   fmt.Println(rounded) // [3 5]
 }
 ```
-
-## TODO
-* [ ] ReduceXXX

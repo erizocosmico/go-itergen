@@ -1,0 +1,10 @@
+{{$name := .Name}}{{$type := .Type}}
+{{range $r := .Reducers}}
+func (i {{$name}}Iter) Reduce{{.Name}}(fn func(current {{$type}}, acc {{.Type}}, index int) {{.Type}}, initial {{.Type}}) {{.Type}} {
+  var result = initial
+  for idx, item := range i {
+    initial = fn(item, result, idx)
+  }
+  return result
+}
+{{end}}

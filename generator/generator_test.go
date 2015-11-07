@@ -204,3 +204,17 @@ func (s *GeneratorSuite) TestGenerateSplice(c *C) {
 	c.Assert(g.generateSplice(buf), IsNil)
 	c.Assert(buf.String(), Equals, generatedSplice)
 }
+
+func (s *GeneratorSuite) TestGenerateReducers(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Reduce: []string{
+			"int",
+			"string",
+		},
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateReduces(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedReducers)
+}
