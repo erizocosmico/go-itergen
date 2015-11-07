@@ -17,9 +17,16 @@ type Generator struct {
 	Filter  bool     `long:"filter" description:"generate Filter function"`
 	All     bool     `long:"all" description:"generate All function"`
 	Some    bool     `long:"some" description:"generate Some function"`
+	ForEach bool     `long:"foreach" description:"generate ForEach function"`
+	Concat  bool     `long:"concat" description:"generate Concat function"`
+	Find    bool     `long:"find" description:"generate Find function"`
+	Reverse bool     `long:"reverse" description:"generate Reverse function"`
+	Splice  bool     `long:"splice" description:"generate Splice function"`
+	Reduce  []string `long:"reduce" description:"generate Reduce function for given type"`
 
-	Type       TypeDef
-	MapResults []TypeDef
+	Type        TypeDef
+	MapResults  []TypeDef
+	ReduceTypes []TypeDef
 }
 
 // TypeDef is a type definition, with name, package and type
@@ -36,6 +43,10 @@ func (g *Generator) parseTypes() {
 
 	for _, m := range g.Map {
 		g.MapResults = append(g.MapResults, g.parseType(m))
+	}
+
+	for _, r := range g.Reduce {
+		g.ReduceTypes = append(g.ReduceTypes, g.parseType(r))
 	}
 }
 
@@ -145,6 +156,41 @@ func (g *Generator) generateMapResults(w io.Writer) error {
 	return nil
 }
 
+func (g *Generator) generateForEach(w io.Writer) error {
+	if g.ForEach {
+		return forEachTpl.Execute(w, g.Type)
+	}
+	return nil
+}
+
+func (g *Generator) generateConcat(w io.Writer) error {
+	if g.Concat {
+		return concatTpl.Execute(w, g.Type)
+	}
+	return nil
+}
+
+func (g *Generator) generateFind(w io.Writer) error {
+	if g.Find {
+		return findTpl.Execute(w, g.Type)
+	}
+	return nil
+}
+
+func (g *Generator) generateReverse(w io.Writer) error {
+	if g.Reverse {
+		return reverseTpl.Execute(w, g.Type)
+	}
+	return nil
+}
+
+func (g *Generator) generateSplice(w io.Writer) error {
+	if g.Splice {
+		return spliceTpl.Execute(w, g.Type)
+	}
+	return nil
+}
+
 func (g *Generator) generateCode() ([]byte, error) {
 	generators := []generatorFunc{
 		g.generatePackage,
@@ -155,6 +201,11 @@ func (g *Generator) generateCode() ([]byte, error) {
 		g.generateFilter,
 		g.generateAll,
 		g.generateSome,
+		g.generateForEach,
+		g.generateConcat,
+		g.generateFind,
+		g.generateReverse,
+		g.generateSplice,
 	}
 
 	buf := bytes.NewBuffer(nil)

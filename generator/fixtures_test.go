@@ -110,3 +110,61 @@ func (i Float64Iter) All(fn func(float64) bool) bool {
   return true
 }
 `
+
+var generatedConcat = `
+func (i Float64Iter) Concat(i2 Float64Iter) Float64Iter {
+  return append(i, i2...)
+}
+`
+
+var generatedFind = `
+func (i Float64Iter) Find(fn func(float64) bool) (float64, int) {
+  var zero float64
+  for i, item := range i {
+    if fn(item) {
+      return item, i
+    }
+  }
+  return zero, -1
+}
+`
+
+var generatedForEach = `
+func (i Float64Iter) ForEach(fn func(int, float64) interface{}) {
+  for n, item := range i {
+    fn(n, item)
+  }
+}
+`
+
+var generatedReverse = `
+func (i Float64Iter) Reverse() Float64Iter {
+  var result []float64
+  for j := len(i)-1; j >= 0; j-- {
+    result = append(result, i[j])
+  }
+  return result
+}
+`
+
+var generatedSplice = `
+// Splice removes numDelete items from the slice
+// since start. If numDelete is -1 it will delete all
+// items after start. If start is higher than the
+// slice length or lower than 0 the whole slice
+// will be returned.
+func (i Float64Iter) Splice(start, numDelete int) Float64Iter {
+  var result Float64Iter
+  length := len(i)
+  if start >= length-1 || start < 0 {
+    return i
+  }
+
+  result = append(result, i[:start]...)
+  if numDelete > -1 && numDelete+start < length {
+    result = append(result, i[start+numDelete:]...)
+  }
+
+  return result
+}
+`

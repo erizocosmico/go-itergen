@@ -1,0 +1,6 @@
+
+func (i {{.Name}}Iter) ForEach(fn func(int, {{.Type}}) interface{}) {
+  for n, item := range i {
+    fn(n, item)
+  }
+}

@@ -16,6 +16,11 @@ var (
 	filterTpl     = loadTemplate("filter")
 	someTpl       = loadTemplate("some")
 	allTpl        = loadTemplate("all")
+	forEachTpl    = loadTemplate("foreach")
+	concatTpl     = loadTemplate("concat")
+	findTpl       = loadTemplate("find")
+	reverseTpl    = loadTemplate("reverse")
+	spliceTpl     = loadTemplate("splice")
 )
 
 func loadTemplateText(name string) string {

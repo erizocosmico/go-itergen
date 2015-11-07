@@ -149,3 +149,58 @@ func (s *GeneratorSuite) TestGenerateAll(c *C) {
 	c.Assert(g.generateAll(buf), IsNil)
 	c.Assert(buf.String(), Equals, generatedAll)
 }
+
+func (s *GeneratorSuite) TestGenerateConcat(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Concat:  true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateConcat(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedConcat)
+}
+
+func (s *GeneratorSuite) TestGenerateFind(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Find:    true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateFind(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedFind)
+}
+
+func (s *GeneratorSuite) TestGenerateForEach(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		ForEach: true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateForEach(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedForEach)
+}
+
+func (s *GeneratorSuite) TestGenerateReverse(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Reverse: true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateReverse(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedReverse)
+}
+
+func (s *GeneratorSuite) TestGenerateSplice(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Splice:  true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateSplice(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedSplice)
+}

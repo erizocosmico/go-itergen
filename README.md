@@ -11,6 +11,11 @@ go-itergen generates the following functions for an array type:
 * **Filter:** apply a function and will return an array with all the elements whose result was true.
 * **All:** will return true if all the elements return true after applying the given function.
 * **Some:** will return true if any of the elements return true after applying the given function.
+* **Concat:** will return a new slice with the contents of the current appending the given slice.
+* **Find:** will return the item and the index of the first occurrence that returns true after applying the given function.
+* **ForEach:** will execute a function for every item.
+* **Reverse:** will return the slice in reversed order.
+* **Splice:** will return a new slice with a number of items removed after the given start.
 
 More will come after these four, but this is the basic functionality that is going to be provided.
 
@@ -21,7 +26,7 @@ You can choose which operations you want for your type, that is, if you don't ne
 You just have to add that to a file in the package you want the code to be generated in.
 
 ```go
-//go:generate go-itergen -t "float64" --pkg="mypkg" --map="int" --map="string" --filter --some --all
+//go:generate go-itergen -t "float64" --pkg="mypkg" --map="string" --map="int" --filter --all --some --foreach --concat --find --reverse --splice
 ```
 
 ## Example
@@ -118,6 +123,54 @@ func (i Float64Iter) Some(fn func(float64) bool) bool {
 	return false
 }
 
+func (i Float64Iter) ForEach(fn func(int, float64) interface{}) {
+	for n, item := range i {
+		fn(n, item)
+	}
+}
+
+func (i Float64Iter) Concat(i2 Float64Iter) Float64Iter {
+	return append(i, i2...)
+}
+
+func (i Float64Iter) Find(fn func(float64) bool) (float64, int) {
+	var zero float64
+	for i, item := range i {
+		if fn(item) {
+			return item, i
+		}
+	}
+	return zero, -1
+}
+
+func (i Float64Iter) Reverse() Float64Iter {
+	var result []float64
+	for j := len(i) - 1; j >= 0; j-- {
+		result = append(result, i[j])
+	}
+	return result
+}
+
+// Splice removes numDelete items from the slice
+// since start. If numDelete is -1 it will delete all
+// items after start. If start is higher than the
+// slice length or lower than 0 the whole slice
+// will be returned.
+func (i Float64Iter) Splice(start, numDelete int) Float64Iter {
+	var result Float64Iter
+	length := len(i)
+	if start >= length-1 || start < 0 {
+		return i
+	}
+
+	result = append(result, i[:start]...)
+	if numDelete > -1 && numDelete+start < length {
+		result = append(result, i[start+numDelete:]...)
+	}
+
+	return result
+}
+
 ```
 
 And would be used like:
@@ -134,10 +187,4 @@ func main() {
 ```
 
 ## TODO
-* [ ] ForEach
-* [ ] Add
-* [ ] Concat
-* [ ] Find
-* [ ] Reverse
-* [ ] Splice
 * [ ] ReduceXXX
