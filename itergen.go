@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-itergen/generator"
 	"github.com/jessevdk/go-flags"
+	"github.com/mvader/go-itergen/generator"
 )
 
 func main() {

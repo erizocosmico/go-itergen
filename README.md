@@ -21,7 +21,7 @@ You can choose which operations you want for your type, that is, if you don't ne
 You just have to add that to a file in the package you want the code to be generated in.
 
 ```go
-//go:generate itergen -t "float64" --map="int" --map="string"
+//go:generate itergen -t "float64" --pkg="mypkg" --map="int" --map="string"
 ```
 
 ## Example
@@ -79,8 +79,8 @@ func main() {
 
 ## TODO
 
-* [ ] Write generator
-* [ ] Generate `XXXIter` type
+* [x] Write generator
+* [x] Generate `XXXIter` type
 * [ ] Generate `Map` function
 * [ ] Generate `XXXIterMapResult` transformers
 * [ ] Generate `Filter` function

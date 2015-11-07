@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"io"
 	"path/filepath"
 	"strings"
 )
 
 // Generator generates functions for iterable types based on the options received
 type Generator struct {
-	RawType string   `short:"t" long:"type" description:"type to generate the code for"`
+	RawType string   `short:"t" long:"type" description:"type to generate the code for" required:"true"`
+	Package string   `long:"pkg" description:"package of the resultant file" required:"true"`
 	Map     []string `long:"map" description:"generate Map function with transformer for given type"`
 	Filter  bool     `long:"filter" description:"generate Filter function"`
 	All     bool     `long:"all" description:"generate All function"`
@@ -19,51 +21,85 @@ type Generator struct {
 	Type struct {
 		Package string
 		Type    string
+		Name    string
 	}
 }
 
-type generatorFunc func() ([]byte, error)
+type generatorFunc func(io.Writer) error
 
 func (g *Generator) parseType() {
-	typeParts := strings.Split(g.RawType, ":")
+	g.Type.Package, g.Type.Type = g.parseRawType(g.RawType)
+	g.Type.Name = g.getTypeName(g.Type.Type)
+}
+
+func (g *Generator) parseRawType(raw string) (string, string) {
+	var (
+		pkg string
+		typ string
+	)
+
+	typeParts := strings.Split(raw, ":")
 	if len(typeParts) == 1 {
-		g.Type.Type = g.RawType
+		typ = g.RawType
 	} else {
-		g.Type.Package = typeParts[0]
-		g.Type.Type = typeParts[1]
+		pkg = typeParts[0]
+		typ = typeParts[1]
 	}
+
+	return pkg, typ
 }
 
-func (g *Generator) generatePackage() ([]byte, error) {
-	return nil, nil
+func (g *Generator) getTypeName(t string) string {
+	if strings.HasPrefix(t, "*") {
+		t = t[1:]
+	}
+
+	if strings.Contains(t, ".") {
+		tParts := strings.Split(t, ".")
+		return strings.Title(tParts[0]) + strings.Title(tParts[1])
+	}
+
+	return strings.Title(t)
 }
 
-func (g *Generator) generateImports() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generatePackage(w io.Writer) error {
+	pkg := fmt.Sprintf("package %s\n\n", g.Package)
+	_, err := w.Write([]byte(pkg))
+	return err
 }
 
-func (g *Generator) generateType() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generateImports(w io.Writer) error {
+	if g.Type.Package != "" {
+		imp := fmt.Sprintf("import \"%s\"\n\n", g.Type.Package)
+		_, err := w.Write([]byte(imp))
+		return err
+	}
+
+	return nil
 }
 
-func (g *Generator) generateSome() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generateType(w io.Writer) error {
+	return typeTpl.Execute(w, g.Type)
 }
 
-func (g *Generator) generateAll() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generateSome(w io.Writer) error {
+	return nil
 }
 
-func (g *Generator) generateFilter() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generateAll(w io.Writer) error {
+	return nil
 }
 
-func (g *Generator) generateMap() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generateFilter(w io.Writer) error {
+	return nil
 }
 
-func (g *Generator) generateMapResults() ([]byte, error) {
-	return nil, nil
+func (g *Generator) generateMap(w io.Writer) error {
+	return nil
+}
+
+func (g *Generator) generateMapResults(w io.Writer) error {
+	return nil
 }
 
 func (g *Generator) generateCode() ([]byte, error) {
@@ -80,11 +116,10 @@ func (g *Generator) generateCode() ([]byte, error) {
 
 	buf := bytes.NewBuffer(nil)
 	for _, gen := range generators {
-		b, err := gen()
+		err := gen(buf)
 		if err != nil {
 			return nil, err
 		}
-		buf.Write(b)
 	}
 
 	return buf.Bytes(), nil
