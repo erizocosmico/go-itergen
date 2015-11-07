@@ -31,6 +31,10 @@ For example, this is what the generated code will look like for a Map operation.
 ```go
 package mypkg
 
+import (
+	"errors"
+)
+
 type Float64Iter []float64
 
 func NewFloat64Iter(items ...float64) Float64Iter {
@@ -47,27 +51,39 @@ func (i Float64Iter) Map(fn func(float64) interface{}) Float64IterMapResult {
 	return result
 }
 
-func (r Float64IterMapResult) ToInt() []int {
-	var result []int
-	for _, i := range r {
-		result = append(result, i.(int))
-	}
-	return result
-}
-func (r Float64IterMapResult) ToString() []string {
+var ErrFloat64ToString = errors.New("cannot convert Float64IterMapResult to []string")
+
+func (r Float64IterMapResult) ToString() ([]string, error) {
 	var result []string
 	for _, i := range r {
+		if _, ok := i.(string); !ok {
+			return nil, ErrFloat64ToString
+		}
 		result = append(result, i.(string))
 	}
-	return result
+	return result, nil
 }
+
+var ErrFloat64ToInt = errors.New("cannot convert Float64IterMapResult to []int")
+
+func (r Float64IterMapResult) ToInt() ([]int, error) {
+	var result []int
+	for _, i := range r {
+		if _, ok := i.(int); !ok {
+			return nil, ErrFloat64ToInt
+		}
+		result = append(result, i.(int))
+	}
+	return result, nil
+}
+
 ```
 
 And would be used like:
 
 ```go
 func main() {
-  rounded := NewFloat64Iter(1.2, 2.4, 3.5, 5.6).Map(func(n float64) interface{} {
+  rounded, err := NewFloat64Iter(1.2, 2.4, 3.5, 5.6).Map(func(n float64) interface{} {
     return int(n)
   }).ToInt()
   fmt.Println(rounded)

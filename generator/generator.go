@@ -83,7 +83,7 @@ func (g *Generator) generatePackage(w io.Writer) error {
 }
 
 func (g *Generator) generateImports(w io.Writer) error {
-	var packages []string
+	var packages = []string{"errors"}
 	if g.Type.Package != "" {
 		packages = append(packages, g.Type.Package)
 	}

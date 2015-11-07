@@ -52,13 +52,17 @@ func (s *GeneratorSuite) TestGeneratePackage(c *C) {
 	c.Assert(buf.String(), Equals, "package foo\n\n")
 }
 
-var generatedImport1 = `
+var generatedImport1 = `import (
+  "errors"
+)
 `
 var generatedImport2 = `import (
+  "errors"
   "os"
 )
 `
 var generatedImport3 = `import (
+  "errors"
   "os"
   "foo"
   "github.com/foo/bar"

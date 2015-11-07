@@ -22,3 +22,5 @@ _testmain.go
 *.exe
 *.test
 *.prof
+float64_iter.go
+test.go
