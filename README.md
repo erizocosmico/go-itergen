@@ -26,7 +26,7 @@ You just have to add that to a file in the package you want the code to be gener
 
 ## Example
 
-For example, this is what the generated code will look like for a Map operation.
+For example, this is what the generated code will look like for the previous generate directive.
 
 ```go
 package mypkg
@@ -124,9 +124,11 @@ And would be used like:
 
 ```go
 func main() {
-  rounded, err := NewFloat64Iter(1.2, 2.4, 3.5, 5.6).Map(func(n float64) interface{} {
+  rounded, err := NewFloat64Iter(1.2, 2.4, 3.5, 5.6).Filter(func(n float64) bool {
+		return n > 2.0
+	}).Map(func(n float64) interface{} {
     return int(n)
   }).ToInt()
-  fmt.Println(rounded)
+  fmt.Println(rounded) // [3 5]
 }
 ```
