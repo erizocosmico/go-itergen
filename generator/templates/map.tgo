@@ -1,10 +1,10 @@
 
 type {{.Name}}IterMapResult []interface{}
 
-func (i {{.Name}}Iter) Map(fn func({{.Type}}) interface{}) {{.Name}}IterMapResult {
+func (i {{.Name}}Iter) Map(fn func(int, {{.Type}}) interface{}) {{.Name}}IterMapResult {
   var result []interface{}
-  for _, item := range i {
-    result = append(result, fn(item))
+  for n, item := range i {
+    result = append(result, fn(n, item))
   }
   return result
 }

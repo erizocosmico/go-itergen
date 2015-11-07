@@ -43,10 +43,10 @@ func NewFloat64Iter(items ...float64) Float64Iter {
 
 type Float64IterMapResult []interface{}
 
-func (i Float64Iter) Map(fn func(float64) interface{}) Float64IterMapResult {
+func (i Float64Iter) Map(fn func(int, float64) interface{}) Float64IterMapResult {
 	var result []interface{}
-	for _, item := range i {
-		result = append(result, fn(item))
+	for n, item := range i {
+		result = append(result, fn(n, item))
 	}
 	return result
 }
@@ -126,7 +126,7 @@ And would be used like:
 func main() {
   rounded, err := NewFloat64Iter(1.2, 2.4, 3.5, 5.6).Filter(func(n float64) bool {
 		return n > 2.0
-	}).Map(func(n float64) interface{} {
+	}).Map(func(int i, n float64) interface{} {
     return int(n)
   }).ToInt()
   fmt.Println(rounded) // [3 5]

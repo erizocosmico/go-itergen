@@ -29,10 +29,10 @@ func NewOsFileIter(items ...*os.File) OsFileIter {
 var generatedMap = `
 type Float64IterMapResult []interface{}
 
-func (i Float64Iter) Map(fn func(float64) interface{}) Float64IterMapResult {
+func (i Float64Iter) Map(fn func(int, float64) interface{}) Float64IterMapResult {
   var result []interface{}
-  for _, item := range i {
-    result = append(result, fn(item))
+  for n, item := range i {
+    result = append(result, fn(n, item))
   }
   return result
 }
