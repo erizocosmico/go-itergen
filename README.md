@@ -1,4 +1,4 @@
-# go-itergen
+# go-itergen [![Build Status](https://travis-ci.org/mvader/go-itergen.svg)](https://travis-ci.org/mvader/go-itergen)
 
 **go-itergen** addresses a common and big problem of go: no maps, no filters, no nothing. If you come from a functional background that could be really frustrating. Since generics are not going to be around for a while code generation is the only way we have to achieve such things.
 
