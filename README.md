@@ -16,6 +16,14 @@ More will come after these four, but this is the basic functionality that is goi
 
 You can choose which operations you want for your type, that is, if you don't need `Map` it won't be generated.
 
+## Generate code
+
+You just have to add that to a file in the package you want the code to be generated in.
+
+```go
+//go:generate itergen -t "float64" --map="int" --map="string"
+```
+
 ## Example
 
 For example, this is what the generated code will look like for a Map operation.
@@ -45,6 +53,14 @@ func (f Float64IterMapResult) ToInt() []int {
   var result []int
   for _, i := range f {
     result = append(result, i.(int))
+  }
+  return result
+}
+
+func (f Float64IterMapResult) ToString() []string {
+  var result []string
+  for _, i := range f {
+    result = append(result, i.(string))
   }
   return result
 }
