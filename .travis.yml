@@ -8,4 +8,7 @@ go:
   - tip
 
 install:
-  - go get -t -v .
+  - go get -t -v ./...
+
+script:
+  - go test ./...
