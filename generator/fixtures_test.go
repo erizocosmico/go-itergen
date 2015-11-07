@@ -77,3 +77,15 @@ func (r Float64IterMapResult) ToString() ([]string, error) {
   return result, nil
 }
 `
+
+var generatedFilter = `
+func (i Float64Iter) Filter(fn func(float64) bool) Float64Iter {
+  var result []float64
+  for _, item := range i {
+    if fn(item) {
+      result = append(result, item)
+    }
+  }
+  return Float64Iter(result)
+}
+`

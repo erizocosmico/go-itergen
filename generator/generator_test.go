@@ -116,3 +116,14 @@ func (s *GeneratorSuite) TestGenerateMapResults(c *C) {
 	c.Assert(g.generateMapResults(buf), IsNil)
 	c.Assert(buf.String(), Equals, generatedMapResults)
 }
+
+func (s *GeneratorSuite) TestGenerateFilters(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Filter:  true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateFilter(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedFilter)
+}
