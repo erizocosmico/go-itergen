@@ -114,10 +114,25 @@ func (g *Generator) generateFilter(w io.Writer) error {
 }
 
 func (g *Generator) generateMap(w io.Writer) error {
+	if len(g.Map) > 0 {
+		return mapTpl.Execute(w, g.Type)
+	}
 	return nil
 }
 
 func (g *Generator) generateMapResults(w io.Writer) error {
+	if len(g.Map) > 0 {
+		data := struct {
+			Name    string
+			Results []TypeDef
+		}{
+			Name:    g.Type.Name,
+			Results: g.MapResults,
+		}
+
+		return mapResultsTpl.Execute(w, data)
+	}
+
 	return nil
 }
 

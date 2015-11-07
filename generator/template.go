@@ -9,8 +9,10 @@ import (
 )
 
 var (
-	typeTpl    = loadTemplate("type")
-	importsTpl = loadTemplate("imports")
+	typeTpl       = loadTemplate("type")
+	importsTpl    = loadTemplate("imports")
+	mapTpl        = loadTemplate("map")
+	mapResultsTpl = loadTemplate("map_results")
 )
 
 func loadTemplateText(name string) string {
