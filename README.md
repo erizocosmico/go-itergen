@@ -7,10 +7,10 @@ This is a naive attempt to make easier deal with this kind of operations over it
 ## Available operations
 
 go-itergen generates the following functions for an array type:
-* [x] Map: apply a function to every element and return an array with the modifications. It actually returns a XXXIterMapResult, which will have a set of operations to convert the `interface{}` result to other types.
-* [ ] Filter: apply a function and will return an array with all the elements whose result was true.
-* [ ] All: will return true if all the elements return true after applying the given function.
-* [ ] Some: will return true if any of the elements return true after applying the given function.
+* **Map:** apply a function to every element and return an array with the modifications. It actually returns a XXXIterMapResult, which will have a set of operations to convert the `interface{}` result to other types.
+* **Filter:** apply a function and will return an array with all the elements whose result was true.
+* **All:** will return true if all the elements return true after applying the given function.
+* **Some:** will return true if any of the elements return true after applying the given function.
 
 More will come after these four, but this is the basic functionality that is going to be provided.
 
@@ -21,7 +21,7 @@ You can choose which operations you want for your type, that is, if you don't ne
 You just have to add that to a file in the package you want the code to be generated in.
 
 ```go
-//go:generate go-itergen -t "float64" --pkg="mypkg" --map="int" --map="string"
+//go:generate go-itergen -t "float64" --pkg="mypkg" --map="int" --map="string" --filter --some --all
 ```
 
 ## Example
@@ -51,6 +51,19 @@ func (i Float64Iter) Map(fn func(float64) interface{}) Float64IterMapResult {
 	return result
 }
 
+var ErrFloat64ToFloat64 = errors.New("cannot convert Float64IterMapResult to []float64")
+
+func (r Float64IterMapResult) Iter() (Float64Iter, error) {
+	var result []float64
+	for _, i := range r {
+		if _, ok := i.(float64); !ok {
+			return nil, ErrFloat64ToFloat64
+		}
+		result = append(result, i.(float64))
+	}
+	return Float64Iter(result), nil
+}
+
 var ErrFloat64ToString = errors.New("cannot convert Float64IterMapResult to []string")
 
 func (r Float64IterMapResult) ToString() ([]string, error) {
@@ -77,6 +90,34 @@ func (r Float64IterMapResult) ToInt() ([]int, error) {
 	return result, nil
 }
 
+func (i Float64Iter) Filter(fn func(float64) bool) Float64Iter {
+	var result []float64
+	for _, item := range i {
+		if fn(item) {
+			result = append(result, item)
+		}
+	}
+	return Float64Iter(result)
+}
+
+func (i Float64Iter) All(fn func(float64) bool) bool {
+	for _, item := range i {
+		if !fn(item) {
+			return false
+		}
+	}
+	return true
+}
+
+func (i Float64Iter) Some(fn func(float64) bool) bool {
+	for _, item := range i {
+		if fn(item) {
+			return true
+		}
+	}
+	return false
+}
+
 ```
 
 And would be used like:
@@ -89,13 +130,3 @@ func main() {
   fmt.Println(rounded)
 }
 ```
-
-## TODO
-
-* [x] Write generator
-* [x] Generate `XXXIter` type
-* [x] Generate `Map` function
-* [x] Generate `XXXIterMapResult` transformers
-* [ ] Generate `Filter` function
-* [ ] Generate `All` function
-* [ ] Generate `Some` function

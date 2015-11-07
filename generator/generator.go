@@ -102,10 +102,16 @@ func (g *Generator) generateType(w io.Writer) error {
 }
 
 func (g *Generator) generateSome(w io.Writer) error {
+	if g.Some {
+		return someTpl.Execute(w, g.Type)
+	}
 	return nil
 }
 
 func (g *Generator) generateAll(w io.Writer) error {
+	if g.All {
+		return allTpl.Execute(w, g.Type)
+	}
 	return nil
 }
 

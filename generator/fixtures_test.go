@@ -89,3 +89,24 @@ func (i Float64Iter) Filter(fn func(float64) bool) Float64Iter {
   return Float64Iter(result)
 }
 `
+
+var generatedSome = `
+func (i Float64Iter) Some(fn func(float64) bool) bool {
+  for _, item := range i {
+    if fn(item) {
+      return true
+    }
+  }
+  return false
+}
+`
+var generatedAll = `
+func (i Float64Iter) All(fn func(float64) bool) bool {
+  for _, item := range i {
+    if !fn(item) {
+      return false
+    }
+  }
+  return true
+}
+`

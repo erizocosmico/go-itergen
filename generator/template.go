@@ -14,6 +14,8 @@ var (
 	mapTpl        = loadTemplate("map")
 	mapResultsTpl = loadTemplate("map_results")
 	filterTpl     = loadTemplate("filter")
+	someTpl       = loadTemplate("some")
+	allTpl        = loadTemplate("all")
 )
 
 func loadTemplateText(name string) string {

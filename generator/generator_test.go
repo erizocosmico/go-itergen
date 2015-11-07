@@ -127,3 +127,25 @@ func (s *GeneratorSuite) TestGenerateFilters(c *C) {
 	c.Assert(g.generateFilter(buf), IsNil)
 	c.Assert(buf.String(), Equals, generatedFilter)
 }
+
+func (s *GeneratorSuite) TestGenerateSome(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Some:    true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateSome(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedSome)
+}
+
+func (s *GeneratorSuite) TestGenerateAll(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		All:     true,
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateAll(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedAll)
+}
