@@ -7,7 +7,7 @@ This is a naive attempt to make easier deal with this kind of operations over it
 ## Available operations
 
 go-itergen generates the following functions for an array type:
-* [ ] Map: apply a function to every element and return an array with the modifications. It actually returns a XXXIterMapResult, which will have a set of operations to convert the `interface{}` result to other types.
+* [x] Map: apply a function to every element and return an array with the modifications. It actually returns a XXXIterMapResult, which will have a set of operations to convert the `interface{}` result to other types.
 * [ ] Filter: apply a function and will return an array with all the elements whose result was true.
 * [ ] All: will return true if all the elements return true after applying the given function.
 * [ ] Some: will return true if any of the elements return true after applying the given function.

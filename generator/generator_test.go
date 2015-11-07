@@ -52,23 +52,6 @@ func (s *GeneratorSuite) TestGeneratePackage(c *C) {
 	c.Assert(buf.String(), Equals, "package foo\n\n")
 }
 
-var generatedImport1 = `import (
-  "errors"
-)
-`
-var generatedImport2 = `import (
-  "errors"
-  "os"
-)
-`
-var generatedImport3 = `import (
-  "errors"
-  "os"
-  "foo"
-  "github.com/foo/bar"
-)
-`
-
 func (s *GeneratorSuite) TestGenerateImports(c *C) {
 	g1 := &Generator{}
 	g2 := &Generator{}
@@ -96,13 +79,6 @@ func (s *GeneratorSuite) TestGenerateImports(c *C) {
 	}
 }
 
-var generatedType = `type OsFileIter []*os.File
-
-func NewOsFileIter(items ...*os.File) OsFileIter {
-  return OsFileIter(items)
-}
-`
-
 func (s *GeneratorSuite) TestGenerateType(c *C) {
 	g := &Generator{}
 	g.Type.Package = "os"
@@ -111,4 +87,32 @@ func (s *GeneratorSuite) TestGenerateType(c *C) {
 	buf := bytes.NewBuffer(nil)
 	c.Assert(g.generateType(buf), IsNil)
 	c.Assert(buf.String(), Equals, generatedType)
+}
+
+func (s *GeneratorSuite) TestGenerateMap(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Map: []string{
+			"int",
+			"string",
+		},
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateMap(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedMap)
+}
+
+func (s *GeneratorSuite) TestGenerateMapResults(c *C) {
+	g := &Generator{
+		RawType: "float64",
+		Map: []string{
+			"int",
+			"string",
+		},
+	}
+	g.parseTypes()
+	buf := bytes.NewBuffer(nil)
+	c.Assert(g.generateMapResults(buf), IsNil)
+	c.Assert(buf.String(), Equals, generatedMapResults)
 }

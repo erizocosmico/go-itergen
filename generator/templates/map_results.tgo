@@ -1,5 +1,5 @@
-{{$name := .Name}}
-{{range $r := .Results}}var Err{{$name}}To{{.Name}} = errors.New("cannot convert {{$name}}IterMapResult to []{{.Type}}")
+{{$name := .Name}}{{range $r := .Results}}
+var Err{{$name}}To{{.Name}} = errors.New("cannot convert {{$name}}IterMapResult to []{{.Type}}")
 
 func (r {{$name}}IterMapResult) To{{.Name}}() ([]{{.Type}}, error) {
   var result []{{.Type}}
@@ -10,5 +10,4 @@ func (r {{$name}}IterMapResult) To{{.Name}}() ([]{{.Type}}, error) {
     result = append(result, i.({{.Type}}))
   }
   return result, nil
-}
-{{end}}
+}{{end}}
