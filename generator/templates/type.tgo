@@ -1,0 +1,5 @@
+type {{.Name}}Iter []{{.Type}}
+
+func New{{.Name}}Iter(items ...{{.Type}}) {{.Name}}Iter {
+  return {{.Name}}Iter(items)
+}

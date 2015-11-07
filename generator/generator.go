@@ -18,18 +18,32 @@ type Generator struct {
 	All     bool     `long:"all" description:"generate All function"`
 	Some    bool     `long:"some" description:"generate Some function"`
 
-	Type struct {
-		Package string
-		Type    string
-		Name    string
-	}
+	Type       TypeDef
+	MapResults []TypeDef
+}
+
+// TypeDef is a type definition, with name, package and type
+type TypeDef struct {
+	Name    string
+	Package string
+	Type    string
 }
 
 type generatorFunc func(io.Writer) error
 
-func (g *Generator) parseType() {
-	g.Type.Package, g.Type.Type = g.parseRawType(g.RawType)
-	g.Type.Name = g.getTypeName(g.Type.Type)
+func (g *Generator) parseTypes() {
+	g.Type = g.parseType(g.RawType)
+
+	for _, m := range g.Map {
+		g.MapResults = append(g.MapResults, g.parseType(m))
+	}
+}
+
+func (g *Generator) parseType(raw string) TypeDef {
+	var t TypeDef
+	t.Package, t.Type = g.parseRawType(raw)
+	t.Name = g.getTypeName(t.Type)
+	return t
 }
 
 func (g *Generator) parseRawType(raw string) (string, string) {
@@ -40,7 +54,7 @@ func (g *Generator) parseRawType(raw string) (string, string) {
 
 	typeParts := strings.Split(raw, ":")
 	if len(typeParts) == 1 {
-		typ = g.RawType
+		typ = raw
 	} else {
 		pkg = typeParts[0]
 		typ = typeParts[1]
@@ -69,13 +83,18 @@ func (g *Generator) generatePackage(w io.Writer) error {
 }
 
 func (g *Generator) generateImports(w io.Writer) error {
+	var packages []string
 	if g.Type.Package != "" {
-		imp := fmt.Sprintf("import \"%s\"\n\n", g.Type.Package)
-		_, err := w.Write([]byte(imp))
-		return err
+		packages = append(packages, g.Type.Package)
 	}
 
-	return nil
+	for _, mr := range g.MapResults {
+		if mr.Package != "" {
+			packages = append(packages, mr.Package)
+		}
+	}
+
+	return importsTpl.Execute(w, packages)
 }
 
 func (g *Generator) generateType(w io.Writer) error {
@@ -132,7 +151,8 @@ func (g *Generator) fileName() string {
 
 // Generate writes the generated code to the correspondant file and returns an error if something failed
 func (g *Generator) Generate() error {
-	g.parseType()
+	g.parseTypes()
+
 	code, err := g.generateCode()
 	if err != nil {
 		return err

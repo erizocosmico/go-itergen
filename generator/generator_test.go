@@ -22,11 +22,10 @@ func (s *GeneratorSuite) TestParseType(c *C) {
 		{"os:*os.File", "*os.File", "os", "OsFile"},
 	}
 	for _, tc := range tcs {
-		g := &Generator{RawType: tc.raw}
-		g.parseType()
-		c.Assert(g.Type.Type, Equals, tc.typ)
-		c.Assert(g.Type.Package, Equals, tc.pkg)
-		c.Assert(g.Type.Name, Equals, tc.name)
+		t := (&Generator{}).parseType(tc.raw)
+		c.Assert(t.Type, Equals, tc.typ)
+		c.Assert(t.Package, Equals, tc.pkg)
+		c.Assert(t.Name, Equals, tc.name)
 	}
 }
 
@@ -53,12 +52,44 @@ func (s *GeneratorSuite) TestGeneratePackage(c *C) {
 	c.Assert(buf.String(), Equals, "package foo\n\n")
 }
 
+var generatedImport1 = `
+`
+var generatedImport2 = `import (
+  "os"
+)
+`
+var generatedImport3 = `import (
+  "os"
+  "foo"
+  "github.com/foo/bar"
+)
+`
+
 func (s *GeneratorSuite) TestGenerateImports(c *C) {
-	g := &Generator{}
-	g.Type.Package = "os"
-	buf := bytes.NewBuffer(nil)
-	c.Assert(g.generateImports(buf), IsNil)
-	c.Assert(buf.String(), Equals, "import \"os\"\n\n")
+	g1 := &Generator{}
+	g2 := &Generator{}
+	g2.Type.Package = "os"
+	g3 := &Generator{}
+	g3.Type.Package = "os"
+	g3.MapResults = []TypeDef{
+		TypeDef{Package: "foo"},
+		TypeDef{Package: "github.com/foo/bar"},
+	}
+
+	tc := []struct {
+		g      *Generator
+		result string
+	}{
+		{g1, generatedImport1},
+		{g2, generatedImport2},
+		{g3, generatedImport3},
+	}
+
+	for _, t := range tc {
+		buf := bytes.NewBuffer(nil)
+		c.Assert(t.g.generateImports(buf), IsNil)
+		c.Assert(buf.String(), Equals, t.result)
+	}
 }
 
 var generatedType = `type OsFileIter []*os.File
