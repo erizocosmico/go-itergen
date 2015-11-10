@@ -4,6 +4,8 @@
 
 This is a naive attempt to make easier deal with this kind of operations over iterable types without having to write every single time the same code over and over.
 
+**Note:** currently, only slice types are supported. The support of channels is planned to be developed.
+
 ## Available operations
 
 go-itergen generates the following functions for a slice type:
@@ -200,3 +202,7 @@ func main() {
   fmt.Println(rounded) // [3 5]
 }
 ```
+
+## TODO
+
+* Implement all (or almost all) these functions for channels
