@@ -2,11 +2,13 @@ package generator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"io"
 	"path/filepath"
 	"strings"
+	"text/template"
 )
 
 // Generator generates functions for iterable types based on the options received
@@ -23,6 +25,7 @@ type Generator struct {
 	Reverse bool     `long:"reverse" description:"generate Reverse function"`
 	Splice  bool     `long:"splice" description:"generate Splice function"`
 	Reduce  []string `long:"reduce" description:"generate Reduce function for given type"`
+	Array   bool     `long:"array" description:"generate Array function for channel type"`
 
 	Type        TypeDef
 	MapResults  []TypeDef
@@ -34,44 +37,68 @@ type TypeDef struct {
 	Name    string
 	Package string
 	Type    string
+	IsChan  bool
 }
 
 type generatorFunc func(io.Writer) error
 
-func (g *Generator) parseTypes() {
-	g.Type = g.parseType(g.RawType)
+func (g *Generator) parseTypes() error {
+	td, err := g.parseType(g.RawType)
+	if err != nil {
+		return err
+	}
+	g.Type = td
 
 	for _, m := range g.Map {
-		g.MapResults = append(g.MapResults, g.parseType(m))
+		td, err := g.parseType(m)
+		if err != nil {
+			return err
+		}
+
+		g.MapResults = append(g.MapResults, td)
 	}
 
 	for _, r := range g.Reduce {
-		g.ReduceTypes = append(g.ReduceTypes, g.parseType(r))
+		td, err := g.parseType(r)
+		if err != nil {
+			return err
+		}
+
+		g.ReduceTypes = append(g.ReduceTypes, td)
 	}
+
+	return nil
 }
 
-func (g *Generator) parseType(raw string) TypeDef {
-	var t TypeDef
-	t.Package, t.Type = g.parseRawType(raw)
-	t.Name = g.getTypeName(t.Type)
-	return t
-}
-
-func (g *Generator) parseRawType(raw string) (string, string) {
+func (g *Generator) parseType(raw string) (TypeDef, error) {
 	var (
-		pkg string
-		typ string
+		t   TypeDef
+		err error
+	)
+
+	t.Package, t.Type, t.IsChan, err = g.parseRawType(raw)
+	t.Name = g.getTypeName(t.Type)
+
+	return t, err
+}
+
+func (g *Generator) parseRawType(raw string) (string, string, bool, error) {
+	var (
+		pkg    string
+		typ    string
+		isChan bool
+		err    error
 	)
 
 	typeParts := strings.Split(raw, ":")
 	if len(typeParts) == 1 {
-		typ = raw
+		typ, isChan, err = parseType(raw)
 	} else {
 		pkg = typeParts[0]
-		typ = typeParts[1]
+		typ, isChan, err = parseType(typeParts[1])
 	}
 
-	return pkg, typ
+	return pkg, typ, isChan, err
 }
 
 func (g *Generator) getTypeName(t string) string {
@@ -94,48 +121,92 @@ func (g *Generator) generatePackage(w io.Writer) error {
 }
 
 func (g *Generator) generateImports(w io.Writer) error {
-	var packages = []string{"errors"}
+	pkgs := map[string]struct{}{
+		"errors": struct{}{},
+	}
+
 	if g.Type.Package != "" {
-		packages = append(packages, g.Type.Package)
+		pkgs[g.Type.Package] = struct{}{}
 	}
 
 	for _, mr := range g.MapResults {
 		if mr.Package != "" {
-			packages = append(packages, mr.Package)
+			pkgs[g.Type.Package] = struct{}{}
 		}
 	}
 
-	return importsTpl.Execute(w, packages)
+	if g.Type.IsChan && g.Concat {
+		pkgs["sync"] = struct{}{}
+	}
+
+	var packages []string
+	for pkg := range pkgs {
+		packages = append(packages, pkg)
+	}
+
+	tpl, err := g.getTpl(importsTpl)
+	if err != nil {
+		return err
+	}
+	return tpl.Execute(w, packages)
 }
 
 func (g *Generator) generateType(w io.Writer) error {
-	return typeTpl.Execute(w, g.Type)
+	tpl, err := g.getTpl(typeTpl)
+	if err != nil {
+		return err
+	}
+	return tpl.Execute(w, g.Type)
 }
 
 func (g *Generator) generateSome(w io.Writer) error {
 	if g.Some {
-		return someTpl.Execute(w, g.Type)
+		if g.Type.IsChan {
+			return errors.New("chan type does not support some")
+		}
+
+		tpl, err := g.getTpl(someTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateAll(w io.Writer) error {
 	if g.All {
-		return allTpl.Execute(w, g.Type)
+		if g.Type.IsChan {
+			return errors.New("chan type does not support all")
+		}
+
+		tpl, err := g.getTpl(allTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateFilter(w io.Writer) error {
 	if g.Filter {
-		return filterTpl.Execute(w, g.Type)
+		tpl, err := g.getTpl(filterTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateMap(w io.Writer) error {
 	if len(g.Map) > 0 {
-		return mapTpl.Execute(w, g.Type)
+		tpl, err := g.getTpl(mapTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
@@ -150,7 +221,11 @@ func (g *Generator) generateMapResults(w io.Writer) error {
 			Results: g.MapResults,
 		}
 
-		return mapResultsTpl.Execute(w, data)
+		tpl, err := g.getTpl(mapResultsTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, data)
 	}
 
 	return nil
@@ -158,35 +233,67 @@ func (g *Generator) generateMapResults(w io.Writer) error {
 
 func (g *Generator) generateForEach(w io.Writer) error {
 	if g.ForEach {
-		return forEachTpl.Execute(w, g.Type)
+		tpl, err := g.getTpl(forEachTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateConcat(w io.Writer) error {
 	if g.Concat {
-		return concatTpl.Execute(w, g.Type)
+		tpl, err := g.getTpl(concatTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateFind(w io.Writer) error {
 	if g.Find {
-		return findTpl.Execute(w, g.Type)
+		if g.Type.IsChan {
+			return errors.New("chan iter does not support find")
+		}
+
+		tpl, err := g.getTpl(findTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateReverse(w io.Writer) error {
 	if g.Reverse {
-		return reverseTpl.Execute(w, g.Type)
+		if g.Type.IsChan {
+			return errors.New("chan iter does not support reverse")
+		}
+
+		tpl, err := g.getTpl(reverseTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
 
 func (g *Generator) generateSplice(w io.Writer) error {
 	if g.Splice {
-		return spliceTpl.Execute(w, g.Type)
+		if g.Type.IsChan {
+			return errors.New("a chan iter does not support splice")
+		}
+
+		tpl, err := g.getTpl(spliceTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
 	}
 	return nil
 }
@@ -203,10 +310,34 @@ func (g *Generator) generateReduces(w io.Writer) error {
 			Reducers: g.ReduceTypes,
 		}
 
-		return reduceTpl.Execute(w, data)
+		tpl, err := g.getTpl(reduceTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, data)
 	}
 
 	return nil
+}
+
+func (g *Generator) generateArray(w io.Writer) error {
+	if g.Array {
+		if !g.Type.IsChan {
+			return errors.New("array is not supported on non-channel types")
+		}
+
+		tpl, err := g.getTpl(arrayTpl)
+		if err != nil {
+			return err
+		}
+		return tpl.Execute(w, g.Type)
+	}
+
+	return nil
+}
+
+func (g *Generator) getTpl(tpl string) (*template.Template, error) {
+	return getTemplate(tpl, g.Type.IsChan)
 }
 
 func (g *Generator) generateCode() ([]byte, error) {
@@ -225,6 +356,7 @@ func (g *Generator) generateCode() ([]byte, error) {
 		g.generateReverse,
 		g.generateSplice,
 		g.generateReduces,
+		g.generateArray,
 	}
 
 	buf := bytes.NewBuffer(nil)
@@ -245,7 +377,10 @@ func (g *Generator) fileName() string {
 
 // Generate writes the generated code to the correspondant file and returns an error if something failed
 func (g *Generator) Generate() error {
-	g.parseTypes()
+	err := g.parseTypes()
+	if err != nil {
+		return err
+	}
 
 	code, err := g.generateCode()
 	if err != nil {
@@ -258,4 +393,13 @@ func (g *Generator) Generate() error {
 	}
 
 	return write(g.fileName(), code)
+}
+
+func parseType(t string) (string, bool, error) {
+	if strings.Contains(t, "<-") {
+		return "", false, fmt.Errorf("invalid channel type given: %s", t)
+	}
+
+	tParts := strings.Split(t, " ")
+	return tParts[len(tParts)-1], strings.HasPrefix(t, "chan"), nil
 }

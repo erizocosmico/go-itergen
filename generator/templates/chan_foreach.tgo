@@ -1,0 +1,11 @@
+
+func (i {{.Name}}ChanIter) ForEach(fn func(int, {{.Type}})) {
+        var n int
+        go func() {
+                for v := range i {
+                        fn(n, v)
+                        n++
+                }
+        }()
+}
+

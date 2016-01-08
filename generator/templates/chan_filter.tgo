@@ -1,0 +1,15 @@
+
+func (i {{.Name}}ChanIter) Filter(fn func({{.Type}}) bool) {{.Name}}ChanIter {
+        out := make(chan {{.Type}})
+
+	go func() {
+		for v := range i {
+			if fn(v) {
+				out <- v
+			}
+		}
+		close(out)
+	}()
+
+	return out
+}
