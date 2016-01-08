@@ -1,12 +1,14 @@
 
 type {{.Name}}ChanMapResult <-chan interface{}
 
-func (i {{.Name}}ChanIter) Map(fn func({{.Type}}) interface{}) {{.Name}}ChanMapResult {
+func (i {{.Name}}ChanIter) Map(fn func(int, {{.Type}}) interface{}) {{.Name}}ChanMapResult {
 	out := make(chan interface{})
 
 	go func() {
+                var idx int
 		for v := range i {
-			out <- fn(v)
+			out <- fn(idx, v)
+                        idx++
 		}
 		close(out)
 	}()

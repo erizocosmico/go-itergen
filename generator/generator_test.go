@@ -22,10 +22,11 @@ func (s *GeneratorSuite) TestParseType(c *C) {
 		{"os:*os.File", "*os.File", "os", "OsFile"},
 	}
 	for _, tc := range tcs {
-		t := (&Generator{}).parseType(tc.raw)
+		t, err := (&Generator{}).parseType(tc.raw)
 		c.Assert(t.Type, Equals, tc.typ)
 		c.Assert(t.Package, Equals, tc.pkg)
 		c.Assert(t.Name, Equals, tc.name)
+		c.Assert(err, IsNil)
 	}
 }
 

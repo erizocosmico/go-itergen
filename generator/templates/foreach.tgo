@@ -1,5 +1,5 @@
 
-func (i {{.Name}}Iter) ForEach(fn func(int, {{.Type}}) interface{}) {
+func (i {{.Name}}Iter) ForEach(fn func(int, {{.Type}})) {
   for n, item := range i {
     fn(n, item)
   }

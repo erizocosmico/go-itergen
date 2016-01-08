@@ -1,10 +1,15 @@
 func (i {{.Name}}ChanIter) Concat(args ...{{.Name}}ChanIter) {{.Name}}ChanIter {
 	var (
-		out = make(chan {{.Type}})
-		wg sync.WaitGroup
+		out   = make(chan {{.Type}})
+		wg    sync.WaitGroup
+		chans = []{{.Name}}ChanIter{i}
 	)
 
-	for _, c := range args {
+	for _, a := range args {
+		chans = append(chans, a)
+	}
+
+	for _, c := range chans {
 		wg.Add(1)
 		go func(in {{.Name}}ChanIter) {
 			for v := range in {
@@ -21,4 +26,3 @@ func (i {{.Name}}ChanIter) Concat(args ...{{.Name}}ChanIter) {{.Name}}ChanIter {
 
 	return out
 }
-
