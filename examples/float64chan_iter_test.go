@@ -123,3 +123,42 @@ func (s *ChanSuite) TestConcat(c *C) {
 
 	c.Assert(result, DeepEquals, []int{1, 2, 3, 4, 5, 6})
 }
+
+func (s *ChanSuite) TestReduce(c *C) {
+	var i = make(Float64ChanIter)
+
+	out := i.ReduceInt(func(current float64, acc int, index int) int {
+		return acc + int(current)
+	}, 0)
+
+	go func() {
+		i <- 1.2
+		i <- 2.5
+		i <- 3.4
+		close(i)
+	}()
+
+	v := <-out
+	c.Assert(v, Equals, 6)
+}
+
+func (s *ChanSuite) TestArray(c *C) {
+	var i = make(Float64ChanIter)
+	var done = make(chan struct{})
+	var result []float64
+
+	go func() {
+		result = i.Array(done)
+	}()
+
+	go func() {
+		i <- 1.2
+		i <- 2.5
+		i <- 3.4
+		close(i)
+	}()
+
+	<-done
+	close(done)
+	c.Assert(result, DeepEquals, []float64{1.2, 2.5, 3.4})
+}

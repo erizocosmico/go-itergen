@@ -17,5 +17,6 @@ func (i {{.Name}}ChanIter) Array(done chan struct{}) []{{.Type}} {
 		done <- struct{}{}
 	}()
 
+        wg.Wait()
 	return result
 }

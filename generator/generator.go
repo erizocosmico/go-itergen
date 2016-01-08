@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"io"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -131,7 +132,7 @@ func (g *Generator) generateImports(w io.Writer) error {
 
 	for _, mr := range g.MapResults {
 		if mr.Package != "" {
-			pkgs[g.Type.Package] = struct{}{}
+			pkgs[mr.Package] = struct{}{}
 		}
 	}
 
@@ -148,6 +149,8 @@ func (g *Generator) generateImports(w io.Writer) error {
 	if err != nil {
 		return err
 	}
+
+	sort.Strings(packages)
 	return tpl.Execute(w, packages)
 }
 

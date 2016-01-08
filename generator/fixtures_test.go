@@ -13,9 +13,9 @@ var generatedImport2 = `import (
 
 var generatedImport3 = `import (
   "errors"
-  "os"
   "foo"
   "github.com/foo/bar"
+  "os"
 )
 `
 
@@ -130,7 +130,7 @@ func (i Float64Iter) Find(fn func(float64) bool) (float64, int) {
 `
 
 var generatedForEach = `
-func (i Float64Iter) ForEach(fn func(int, float64) interface{}) {
+func (i Float64Iter) ForEach(fn func(int, float64)) {
   for n, item := range i {
     fn(n, item)
   }
@@ -174,7 +174,7 @@ var generatedReducers = `
 func (i Float64Iter) ReduceInt(fn func(current float64, acc int, index int) int, initial int) int {
   var result = initial
   for idx, item := range i {
-    initial = fn(item, result, idx)
+    result = fn(item, result, idx)
   }
   return result
 }
@@ -182,7 +182,7 @@ func (i Float64Iter) ReduceInt(fn func(current float64, acc int, index int) int,
 func (i Float64Iter) ReduceString(fn func(current float64, acc string, index int) string, initial string) string {
   var result = initial
   for idx, item := range i {
-    initial = fn(item, result, idx)
+    result = fn(item, result, idx)
   }
   return result
 }
