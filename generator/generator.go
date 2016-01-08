@@ -370,8 +370,18 @@ func (g *Generator) generateCode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+const (
+	fileTpl     = "%s_iter.go"
+	chanFileTpl = "%schan_iter.go"
+)
+
 func (g *Generator) fileName() string {
-	file := fmt.Sprintf("%s_iter.go", fileify(g.Type.Type))
+	tpl := fileTpl
+	if g.Type.IsChan {
+		tpl = chanFileTpl
+	}
+
+	file := fmt.Sprintf(tpl, fileify(g.Type.Type))
 	return filepath.Join(".", file)
 }
 
