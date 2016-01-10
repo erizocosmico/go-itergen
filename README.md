@@ -4,21 +4,24 @@
 
 This is a naive attempt to make easier deal with this kind of operations over iterable types without having to write every single time the same code over and over.
 
-**Note:** currently, only slice types are supported. The support of channels is planned to be developed.
+It also has a very nice feature: it works with channels, not just slices. So, you can map, filter, concat and reduce channels. And even convert them to arrays. All without always having to write the same boilerplate code. TL;DR: channel manipulation made easy.
 
 ## Available operations
 
 go-itergen generates the following functions for a slice type:
-* **Map:** apply a function to every element and return a slice with the modifications. It actually returns a XXXIterMapResult, which will have a set of operations to convert the `interface{}` result to other types.
-* **Filter:** apply a function and will return a slice with all the elements whose result was true.
-* **All:** will return true if all the elements return true after applying the given function.
-* **Some:** will return true if any of the elements return true after applying the given function.
-* **Concat:** will return a new slice with the contents of the current appending the given slice.
-* **Find:** will return the item and the index of the first occurrence that returns true after applying the given function.
-* **ForEach:** will execute a function for every item.
-* **Reverse:** will return the slice in reversed order.
-* **Splice:** will return a new slice with a number of items removed after the given start.
-* **Reduce:** applies a function against an accumulator and each value of the slice (from left to right) to reduce it to a single value of the given type.
+* **Map:** apply a function to every element and return a slice/channel with the modifications. It actually returns a XXXIterMapResult, which will have a set of operations to convert the `interface{}` result to other types.
+* **Filter:** apply a function and will return a slice/channel with all the elements whose result was true.
+* **All (only for slices):** will return true if all the elements return true after applying the given function.
+* **Some (only for slices):** will return true if any of the elements return true after applying the given function.
+* **Concat:** 
+  * In the case of a slice, will return a new array with the contents of `a` and `b` given `a.Concat(b)`.
+  * In the case of a channel, will return a new channel multiplexing all the other given channels. E.g: `a.Concat(b, c, d)` will return a channel with all the items sent to `a`, `b`, `c` and `d`.
+* **Find (only for slices):** will return the item and the index of the first occurrence that returns true after applying the given function.
+* **ForEach:** will execute a function for every item in the slice/channel.
+* **Reverse (only for slices):** will return the slice in reversed order.
+* **Splice (only for slices):** will return a new slice with a number of items removed after the given start.
+* **Reduce:** applies a function against an accumulator and each value of the slice/channel (from first to last) to reduce it to a single value of the given type.
+* **Array (only for channels):** converts the channel into an array. The operation blocks, but can be done in a goroutine and you will be notified via the `done` parameter.
 
 You can choose which operations you want for your type, that is, if you don't need `Map` or another function it won't be generated.
 
@@ -30,179 +33,42 @@ You just have to add that to a file in the package you want the code to be gener
 //go:generate go-itergen -t "float64" --pkg="mypkg" --map="string" --map="int" --filter --all --some --foreach --concat --find --reverse --splice --reduce="string" --reduce="int"
 ```
 
-## Example
+Or execute the binary:
 
-For example, this is what the generated code will look like for the previous generate directive.
-
-```go
-package mypkg
-
-import (
-	"errors"
-)
-
-type Float64Iter []float64
-
-func NewFloat64Iter(items ...float64) Float64Iter {
-	return Float64Iter(items)
-}
-
-type Float64IterMapResult []interface{}
-
-func (i Float64Iter) Map(fn func(int, float64) interface{}) Float64IterMapResult {
-	var result []interface{}
-	for n, item := range i {
-		result = append(result, fn(n, item))
-	}
-	return result
-}
-
-var ErrFloat64ToFloat64 = errors.New("cannot convert Float64IterMapResult to []float64")
-
-func (r Float64IterMapResult) Iter() (Float64Iter, error) {
-	var result []float64
-	for _, i := range r {
-		if _, ok := i.(float64); !ok {
-			return nil, ErrFloat64ToFloat64
-		}
-		result = append(result, i.(float64))
-	}
-	return Float64Iter(result), nil
-}
-
-var ErrFloat64ToString = errors.New("cannot convert Float64IterMapResult to []string")
-
-func (r Float64IterMapResult) ToString() ([]string, error) {
-	var result []string
-	for _, i := range r {
-		if _, ok := i.(string); !ok {
-			return nil, ErrFloat64ToString
-		}
-		result = append(result, i.(string))
-	}
-	return result, nil
-}
-
-var ErrFloat64ToInt = errors.New("cannot convert Float64IterMapResult to []int")
-
-func (r Float64IterMapResult) ToInt() ([]int, error) {
-	var result []int
-	for _, i := range r {
-		if _, ok := i.(int); !ok {
-			return nil, ErrFloat64ToInt
-		}
-		result = append(result, i.(int))
-	}
-	return result, nil
-}
-
-func (i Float64Iter) Filter(fn func(float64) bool) Float64Iter {
-	var result []float64
-	for _, item := range i {
-		if fn(item) {
-			result = append(result, item)
-		}
-	}
-	return Float64Iter(result)
-}
-
-func (i Float64Iter) All(fn func(float64) bool) bool {
-	for _, item := range i {
-		if !fn(item) {
-			return false
-		}
-	}
-	return true
-}
-
-func (i Float64Iter) Some(fn func(float64) bool) bool {
-	for _, item := range i {
-		if fn(item) {
-			return true
-		}
-	}
-	return false
-}
-
-func (i Float64Iter) ForEach(fn func(int, float64) interface{}) {
-	for n, item := range i {
-		fn(n, item)
-	}
-}
-
-func (i Float64Iter) Concat(i2 Float64Iter) Float64Iter {
-	return append(i, i2...)
-}
-
-func (i Float64Iter) Find(fn func(float64) bool) (float64, int) {
-	var zero float64
-	for i, item := range i {
-		if fn(item) {
-			return item, i
-		}
-	}
-	return zero, -1
-}
-
-func (i Float64Iter) Reverse() Float64Iter {
-	var result []float64
-	for j := len(i) - 1; j >= 0; j-- {
-		result = append(result, i[j])
-	}
-	return result
-}
-
-// Splice removes numDelete items from the slice
-// since start. If numDelete is -1 it will delete all
-// items after start. If start is higher than the
-// slice length or lower than 0 the whole slice
-// will be returned.
-func (i Float64Iter) Splice(start, numDelete int) Float64Iter {
-	var result Float64Iter
-	length := len(i)
-	if start >= length-1 || start < 0 {
-		return i
-	}
-
-	result = append(result, i[:start]...)
-	if numDelete > -1 && numDelete+start < length {
-		result = append(result, i[start+numDelete:]...)
-	}
-
-	return result
-}
-
-func (i Float64Iter) ReduceInt(fn func(current float64, acc int, index int) int, initial int) int {
-	var result = initial
-	for idx, item := range i {
-		initial = fn(item, result, idx)
-	}
-	return result
-}
-
-func (i Float64Iter) ReduceString(fn func(current float64, acc string, index int) string, initial string) string {
-	var result = initial
-	for idx, item := range i {
-		initial = fn(item, result, idx)
-	}
-	return result
-}
-
+```bash
+go-itergen -t "float64" --pkg="mypkg" --map="string" --map="int" --filter --all --some --foreach --concat --find --reverse --splice --reduce="string" --reduce="int"
 ```
 
-And would be used like:
+#### Types from external packages
+
+If you want to generate an iterable type for an external package, you can do that with `:`.
+For example, let's say we want a `os.File` iterable. We would do it like this:
+```
+go-itergen -t "os:os.File" --pkg="mypkg" --map="string"
+```
+
+Note that what goes before the `:` is what would go in the import, and that you have to type the full type name. This is because of how Go packages work. One can not guarantee that `github.com/foo/go-bar` will be `go-bar.Foo`. It may be `bar.Foo`. And thus, it has to be specified.
+
+Another example:
+```
+go-itergen -t "golang.org/x/net/context:context.Context" --pkg="mypkg" --map="github.com/foo/ctx:ctx.MyCtx"
+```
+
+Take a look at the map. We can also specify the external packages in `map` and `reduce` arguments.
+
+## Example
+
+For examples of generated code see the `examples` folder. Contains a file with a `chan float64` iterable and another with a `float64` slice iterable.
+
+**Usage example:**
 
 ```go
 func main() {
   rounded, err := NewFloat64Iter(1.2, 2.4, 3.5, 5.6).Filter(func(n float64) bool {
 		return n > 2.0
-	}).Map(func(int i, n float64) interface{} {
+  }).Map(func(int i, n float64) interface{} {
     return int(n)
   }).ToInt()
   fmt.Println(rounded) // [3 5]
 }
 ```
-
-## TODO
-
-* Implement all (or almost all) these functions for channels
