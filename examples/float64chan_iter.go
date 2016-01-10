@@ -30,21 +30,16 @@ func (r Float64ChanMapResult) Iter() (Float64ChanIter, chan error) {
 	out := make(chan float64)
 	err := make(chan error)
 
-	finish := func() {
-		close(err)
-		close(out)
-	}
-
 	go func() {
 		for v := range r {
 			if _, ok := v.(float64); !ok {
 				err <- ErrFloat64ChanToFloat64
-				finish()
-				return
+				break
 			}
 			out <- v.(float64)
 		}
-		finish()
+		close(err)
+		close(out)
 	}()
 
 	return out, err
@@ -56,21 +51,16 @@ func (r Float64ChanMapResult) ToInt() (chan int, chan error) {
 	out := make(chan int)
 	err := make(chan error)
 
-	finish := func() {
-		close(err)
-		close(out)
-	}
-
 	go func() {
 		for v := range r {
 			if _, ok := v.(int); !ok {
 				err <- ErrFloat64ChanToInt
-				finish()
-				return
+				break
 			}
 			out <- v.(int)
 		}
-		finish()
+		close(err)
+		close(out)
 	}()
 
 	return out, err

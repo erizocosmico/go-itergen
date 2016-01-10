@@ -5,21 +5,16 @@ func (r {{$name}}ChanMapResult) To{{.Name}}() (chan {{.Type}}, chan error) {
         out := make(chan {{.Type}})
         err := make(chan error)
 
-        finish := func() {
-		close(err)
-		close(out)
-	}
-
 	go func() {
 		for v := range r {
 			if _, ok := v.({{.Type}}); !ok {
 				err <- Err{{$name}}ChanTo{{.Name}}
-				finish()
-				return
+				break
 			}
 			out <- v.({{.Type}})
 		}
-		finish()
+                close(err)
+                close(out)
 	}()
 
 	return out, err 
