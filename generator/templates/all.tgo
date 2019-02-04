@@ -1,9 +1,0 @@
-
-func (i {{.Name}}Iter) All(fn func({{.Type}}) bool) bool {
-  for _, item := range i {
-    if !fn(item) {
-      return false
-    }
-  }
-  return true
-}

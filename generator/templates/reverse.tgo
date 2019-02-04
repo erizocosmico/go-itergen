@@ -1,8 +1,0 @@
-
-func (i {{.Name}}Iter) Reverse() {{.Name}}Iter {
-  var result []{{.Type}}
-  for j := len(i)-1; j >= 0; j-- {
-    result = append(result, i[j])
-  }
-  return result
-}

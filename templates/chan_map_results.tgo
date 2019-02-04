@@ -1,0 +1,22 @@
+{{$name := .Name}}{{range $r := .Results}}
+var Err{{$name}}ChanTo{{.Name}} = errors.New("cannot convert {{$name}}ChanMapResult to chan {{.Type}}")
+
+func (r {{$name}}ChanMapResult) To{{.Name}}() (chan {{.Type}}, chan error) {
+        out := make(chan {{.Type}})
+        err := make(chan error)
+
+	go func() {
+		for v := range r {
+			if _, ok := v.({{.Type}}); !ok {
+				err <- Err{{$name}}ChanTo{{.Name}}
+				break
+			}
+			out <- v.({{.Type}})
+		}
+                close(err)
+                close(out)
+	}()
+
+	return out, err 
+}{{end}}
+

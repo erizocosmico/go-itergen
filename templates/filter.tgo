@@ -1,0 +1,10 @@
+
+func (i {{.Name}}Iter) Filter(fn func({{.Type}}) bool) {{.Name}}Iter {
+  var result []{{.Type}}
+  for _, item := range i {
+    if fn(item) {
+      result = append(result, item)
+    }
+  }
+  return {{.Name}}Iter(result)
+}

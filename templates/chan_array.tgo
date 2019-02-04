@@ -1,0 +1,22 @@
+
+func (i {{.Name}}ChanIter) Array(done chan struct{}) []{{.Type}} {
+	var (
+		result []{{.Type}}
+		wg     sync.WaitGroup
+	)
+
+	wg.Add(1)
+	go func() {
+		for v := range i {
+			result = append(result, v)
+		}
+		wg.Done()
+	}()
+
+	defer func() {
+		done <- struct{}{}
+	}()
+
+        wg.Wait()
+	return result
+}

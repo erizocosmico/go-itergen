@@ -1,10 +1,15 @@
-# go-itergen [![Build Status](https://travis-ci.org/mvader/go-itergen.svg)](https://travis-ci.org/mvader/go-itergen)
+# go-itergen [![Build Status](https://travis-ci.org/erizocosmico/go-itergen.svg)](https://travis-ci.org/erizocosmico/go-itergen)
 
 **go-itergen** addresses a common and big problem of go: no maps, no filters, no nothing. If you come from a functional background that could be really frustrating. Since generics are not going to be around for a while code generation is the only way we have to achieve such things.
 
 This is a naive attempt to make easier deal with this kind of operations over iterable types without having to write every single time the same code over and over.
 
 It also has a very nice feature: it works with channels, not just slices. So, you can map, filter, concat and reduce channels. And even convert them to arrays. All without always having to write the same boilerplate code. TL;DR: channel manipulation made easy.
+
+## Install
+
+```
+go get -u github.com/erizocosmico/go-itergen/cmd/...
 
 ## Available operations
 

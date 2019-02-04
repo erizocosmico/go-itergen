@@ -1,0 +1,10 @@
+
+func (i {{.Name}}Iter) Find(fn func({{.Type}}) bool) ({{.Type}}, int) {
+  var zero {{.Type}}
+  for i, item := range i {
+    if fn(item) {
+      return item, i
+    }
+  }
+  return zero, -1
+}

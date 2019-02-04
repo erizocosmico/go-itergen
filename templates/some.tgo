@@ -1,0 +1,9 @@
+
+func (i {{.Name}}Iter) Some(fn func({{.Type}}) bool) bool {
+  for _, item := range i {
+    if fn(item) {
+      return true
+    }
+  }
+  return false
+}

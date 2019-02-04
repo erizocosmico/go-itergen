@@ -1,0 +1,39 @@
+
+type {{.Name}}ChanMapResult <-chan interface{}
+
+func (i {{.Name}}ChanIter) Map(fn func(int, {{.Type}}) interface{}) {{.Name}}ChanMapResult {
+	out := make(chan interface{})
+
+	go func() {
+                var idx int
+		for v := range i {
+			out <- fn(idx, v)
+                        idx++
+		}
+		close(out)
+	}()
+
+	return out
+}
+
+var Err{{.Name}}ChanTo{{.Name}} = errors.New("cannot convert {{.Name}}ChanMapResult to chan {{.Type}}")
+
+func (r {{.Name}}ChanMapResult) Iter() ({{.Name}}ChanIter, chan error) {
+        out := make(chan {{.Type}})
+        err := make(chan error)
+
+	go func() {
+		for v := range r {
+			if _, ok := v.({{.Type}}); !ok {
+				err <- Err{{.Name}}ChanTo{{.Name}}
+				break
+			}
+			out <- v.({{.Type}})
+		}
+                close(err)
+                close(out)
+	}()
+
+	return out, err
+}
+

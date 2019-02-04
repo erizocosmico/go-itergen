@@ -1,0 +1,23 @@
+
+type {{.Name}}IterMapResult []interface{}
+
+func (i {{.Name}}Iter) Map(fn func(int, {{.Type}}) interface{}) {{.Name}}IterMapResult {
+  var result []interface{}
+  for n, item := range i {
+    result = append(result, fn(n, item))
+  }
+  return result
+}
+
+var Err{{.Name}}To{{.Name}} = errors.New("cannot convert {{.Name}}IterMapResult to []{{.Type}}")
+
+func (r {{.Name}}IterMapResult) Iter() ({{.Name}}Iter, error) {
+  var result []{{.Type}}
+  for _, i := range r {
+    if _, ok := i.({{.Type}}); !ok {
+      return nil, Err{{.Name}}To{{.Name}}
+    }
+    result = append(result, i.({{.Type}}))
+  }
+  return {{.Name}}Iter(result), nil
+}

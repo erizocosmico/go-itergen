@@ -1,0 +1,3 @@
+{{if .}}import (
+{{range $pkg := .}}  "{{$pkg}}"
+{{end}}){{end}}

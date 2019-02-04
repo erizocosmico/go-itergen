@@ -1,4 +1,0 @@
-
-func (i {{.Name}}Iter) Concat(i2 {{.Name}}Iter) {{.Name}}Iter {
-  return append(i, i2...)
-}
