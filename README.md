@@ -10,6 +10,7 @@ It also has a very nice feature: it works with channels, not just slices. So, yo
 
 ```
 go get -u github.com/erizocosmico/go-itergen/cmd/...
+```
 
 ## Available operations
 
